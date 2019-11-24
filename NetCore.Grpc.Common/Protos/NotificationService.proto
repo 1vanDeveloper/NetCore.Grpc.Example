@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "NetCore.Grpc.Common.Protos";
+
+// directional streaming 
+service NotificationService 
+{
+    rpc Notify(google.protobuf.Empty) returns (stream EventMessage);
+    rpc Unsubscribe(google.protobuf.Empty) returns (google.protobuf.Empty);
+}
+
+// Message from server
+message EventMessage 
+{
+    // Message type
+    EventType Type = 1;
+    // Data
+    bytes Data = 2;
+}
+
+// Type of notification messages
+enum EventType 
+{
+    NewMessage = 0;
+}

@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "NetCore.Grpc.Common.Protos";
+
+message Response
+{
+    bool IsSuccess = 1;
+    google.protobuf.StringValue Description = 2;
+}

@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Folder Include="Protos" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Google.Api.CommonProtos" Version="1.7.0" />
+      <PackageReference Include="Grpc.Core" Version="2.23.1" />
+      <PackageReference Include="Grpc.Tools" Version="2.23.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Protos\Authentication.proto" />
+      <Protobuf Include="Protos\Authentication.proto" />
+      <None Remove="Protos\CommonModels.proto" />
+      <Protobuf Include="Protos\CommonModels.proto" />
+      <None Remove="Protos\Chat.proto" />
+      <Protobuf Include="Protos\Chat.proto" />
+      <None Remove="Protos\NotificationService.proto" />
+      <Protobuf Include="Protos\NotificationService.proto">
+        <OutputDir>obj\Debug\netstandard2.1\</OutputDir>
+      </Protobuf>
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "Protos/CommonModels.proto";
+
+option csharp_namespace = "NetCore.Grpc.Common.Protos";
+
+service AuthenticationService
+{
+    rpc Login(AuthenticateRequest) returns (AuthenticateResponse);
+    rpc Logout(google.protobuf.Empty) returns (Response);
+}
+
+message AuthenticateRequest
+{
+    string Login = 1;
+    string Password = 2;
+}
+
+message AuthenticateResponse
+{
+    string Login = 1;
+    string Token = 2;
+}

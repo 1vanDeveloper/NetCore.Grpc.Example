@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+import "Protos/CommonModels.proto";
+
+option csharp_namespace = "NetCore.Grpc.Common.Protos";
+
+service ChatService
+{
+    rpc Send(Message) returns (Response);
+}
+
+message Message
+{
+    string Login = 1;
+    google.protobuf.Timestamp Time = 2;
+    google.protobuf.StringValue Content = 3;
+}

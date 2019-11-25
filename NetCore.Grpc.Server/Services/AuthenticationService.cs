@@ -15,6 +15,12 @@ namespace NetCore.Grpc.Server.Services
     /// </summary>
     public class AuthenticationService: proto.AuthenticationService.AuthenticationServiceBase
     {
+        private readonly Dictionary<string, string> _stubUsers = new Dictionary<string, string>
+        {
+            { "User1", "1" },
+            { "User2", "2" }
+        };
+        
         public override Task<proto.AuthenticateResponse> Login(proto.AuthenticateRequest request, ServerCallContext context)
         {
             var identity = GetIdentity(request.Login, request.Password);
@@ -58,6 +64,10 @@ namespace NetCore.Grpc.Server.Services
         private ClaimsIdentity GetIdentity(string username, string password)
         {
             // todo: check user/password
+            if (!_stubUsers.TryGetValue(username, out var pass) || !pass.Equals(password))
+            {
+                return null;
+            }
             
             var claims = new List<Claim>
             {

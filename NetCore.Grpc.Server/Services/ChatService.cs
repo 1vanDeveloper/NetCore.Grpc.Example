@@ -8,6 +8,9 @@ using proto = NetCore.Grpc.Common.Protos;
 
 namespace NetCore.Grpc.Server.Services
 {
+    /// <summary>
+    /// Proto ChatService implementation
+    /// </summary>
     [Authorize]
     public class ChatService: proto.ChatService.ChatServiceBase
     {

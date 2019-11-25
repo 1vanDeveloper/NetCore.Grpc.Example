@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
@@ -13,6 +14,7 @@ using NetCore.Grpc.Common.Observer;
 using NetCore.Grpc.Common.Protos;
 using NetCore.Grpc.Server.Middlewares;
 using NetCore.Grpc.Server.Services;
+using AuthenticationService = NetCore.Grpc.Server.Services.AuthenticationService;
 using ChatService = NetCore.Grpc.Server.Services.ChatService;
 using NotificationService = NetCore.Grpc.Server.Services.NotificationService;
 
@@ -42,6 +44,12 @@ namespace NetCore.Grpc.Server
                     };
                 });
             
+            services.AddHttpsRedirection(options =>
+            {
+                options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
+                options.HttpsPort = Program.Configuration.GetValue<int>("ListeningPort");
+            });
+            
             services.AddGrpc(opt =>
             {
                 // catching errors
@@ -62,6 +70,7 @@ namespace NetCore.Grpc.Server
             
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapGrpcService<AuthenticationService>();
                 endpoints.MapGrpcService<ChatService>();
                 endpoints.MapGrpcService<NotificationService>();
 

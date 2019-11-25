@@ -10,6 +10,9 @@ using proto = NetCore.Grpc.Common.Protos;
 
 namespace NetCore.Grpc.Server.Services
 {
+    /// <summary>
+    /// Proto NotificationService implementation
+    /// </summary>
     [Authorize]
     public class NotificationService: proto.NotificationService.NotificationServiceBase
     {

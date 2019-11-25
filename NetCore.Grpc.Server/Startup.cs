@@ -43,13 +43,9 @@ namespace NetCore.Grpc.Server
                         ValidateIssuerSigningKey = true,
                     };
                 });
-            
-            services.AddHttpsRedirection(options =>
-            {
-                options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
-                options.HttpsPort = Program.Configuration.GetValue<int>("ListeningPort");
-            });
-            
+
+            services.AddAuthorization();
+
             services.AddGrpc(opt =>
             {
                 // catching errors
@@ -65,9 +61,11 @@ namespace NetCore.Grpc.Server
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseAuthentication();
             app.UseRouting();
-            
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcService<AuthenticationService>();

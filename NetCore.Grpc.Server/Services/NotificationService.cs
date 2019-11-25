@@ -33,7 +33,7 @@ namespace NetCore.Grpc.Server.Services
             while (!_grpcObservable.HasUserUnsubscribed(subscriber.Login) &&
                    !context.CancellationToken.IsCancellationRequested)
             {
-                await Task.Delay(10000);
+                await Task.Delay(1000);
             }
 
             if (!context.CancellationToken.IsCancellationRequested)

@@ -25,30 +25,6 @@
       <Protobuf Include="Protos\NotificationService.proto">
         <OutputDir>obj\Debug\netstandard2.1\</OutputDir>
       </Protobuf>
-      <None Update="Certs\ca.crt">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="Certs\ca.key">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="Certs\client.crt">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="Certs\client.csr">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="Certs\client.key">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="Certs\server.crt">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="Certs\server.csr">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="Certs\server.key">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
       <None Update="Certs\server.pfx">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>

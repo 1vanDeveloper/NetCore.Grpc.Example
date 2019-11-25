@@ -13,7 +13,7 @@ namespace NetCore.Grpc.Client
 {
     class Program
     {
-        private const string ConnectionString = "localhost";
+        private const string ConnectionString = "https://localhost:5001";
 
         private static readonly CancellationTokenSource CancellationTokenSource =
             new CancellationTokenSource();
@@ -28,21 +28,14 @@ namespace NetCore.Grpc.Client
                 // unable insecure connection 
                 AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
 
-                var channel = CreateAuthenticatedChannel();
-                try
-                {
-                    Console.Write("Enter login: ");
-                    var login = Console.ReadLine();
-                    Console.Write("Enter password: ");
-                    var password = Console.ReadLine();
-                    await AuthenticateAsync(login, password, channel);
-                    var cancellationToken = CancellationTokenSource.Token;
-                    await Task.WhenAll(SendMessageAsync(channel), SubscribeToNotificationsAsync(channel, cancellationToken)); 
-                }
-                finally
-                {
-                    await channel.ShutdownAsync();
-                }
+                using var channel = CreateAuthenticatedChannel();
+                Console.Write("Enter login: ");
+                var login = Console.ReadLine();
+                Console.Write("Enter password: ");
+                var password = Console.ReadLine();
+                await AuthenticateAsync(login, password, channel);
+                var cancellationToken = CancellationTokenSource.Token;
+                await Task.WhenAll(SendMessageAsync(channel), SubscribeToNotificationsAsync(channel, cancellationToken));
             }
             catch (Exception e)
             {
@@ -74,30 +67,18 @@ namespace NetCore.Grpc.Client
             }
         }
         
-        private static SslCredentials GetSslCredentials()
+        private static GrpcChannel CreateAuthenticatedChannel()
         {
-            var certPath = Path.Combine(Environment.CurrentDirectory, "Certs");
-            var caCert = File.ReadAllText(Path.Combine(certPath, "ca.crt"));
-            var cert = File.ReadAllText(Path.Combine(certPath, "client.crt"));
-            var key = File.ReadAllText(Path.Combine(certPath, "client.key"));
-
-            var keyPair = new KeyCertificatePair(cert, key);
-            var cred = new SslCredentials(caCert, keyPair);
-            
-            return cred;
-        }
-        
-        private static Channel CreateAuthenticatedChannel()
-        {
-            var sslCredentials = GetSslCredentials();
+            var sslCredentials = new SslCredentials();
             var asyncAuthInterceptor = GetAsyncAuthInterceptor();
             
             var channelCredentials = ChannelCredentials.Create(
                 sslCredentials, CallCredentials.FromInterceptor(asyncAuthInterceptor));
             
-            var channel = new Channel(ConnectionString, 5001, channelCredentials);
-            
-            return channel;
+            return GrpcChannel.ForAddress(ConnectionString, new GrpcChannelOptions()
+            {
+                Credentials = channelCredentials
+            });
         }
 
         private static AsyncAuthInterceptor GetAsyncAuthInterceptor()
@@ -125,7 +106,7 @@ namespace NetCore.Grpc.Client
                 var messageContent = string.Empty;
                 while (messageContent != "exit")
                 {
-                    Console.Write("Enter message: ");
+                    Console.WriteLine("Enter message: ");
                     messageContent = Console.ReadLine();
 
                     var message = new Message
@@ -165,7 +146,18 @@ namespace NetCore.Grpc.Client
                         {
                             case EventType.NewMessage:
                                 var message = Message.Parser.ParseFrom(eventMessage.Data);
-                                Console.WriteLine($"{message.Login}({message.Time.ToDateTime():g}): {message.Content}");
+                                if (message.Login == _login)
+                                {
+                                    return;
+                                }
+                                
+                                var left = Console.CursorLeft;
+                                var top = Console.CursorTop;
+                                
+                                Console.MoveBufferArea(0, top-1, Math.Max(left, 14), 2, 0, top + 2);
+                                Console.SetCursorPosition(0, top-1);
+                                Console.WriteLine($"\r\n{message.Login}({message.Time.ToDateTime():g}): {message.Content}");
+                                Console.SetCursorPosition(left, top + 3);
                                 break;
                             default:
                                 throw new ArgumentOutOfRangeException();

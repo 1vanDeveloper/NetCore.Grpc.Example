@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -30,6 +31,8 @@ namespace NetCore.Grpc.Server.Services
             var subscriber = new GrpcNotificationObserver(contextLogin, responseStream);
             _grpcObservable.Register(subscriber);
          
+            Console.WriteLine($"{DateTime.Now:G} : {context.GetLogin()} is subscribed");
+            
             while (!_grpcObservable.HasUserUnsubscribed(subscriber.Login) &&
                    !context.CancellationToken.IsCancellationRequested)
             {

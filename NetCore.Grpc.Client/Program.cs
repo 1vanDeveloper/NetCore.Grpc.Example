@@ -35,7 +35,7 @@ namespace NetCore.Grpc.Client
                 var password = Console.ReadLine();
                 await AuthenticateAsync(login, password, channel);
                 var cancellationToken = CancellationTokenSource.Token;
-                await Task.WhenAll(SendMessageAsync(channel), SubscribeToNotificationsAsync(channel, cancellationToken));
+                await Task.WhenAll(SubscribeToNotificationsAsync(cancellationToken), SendMessageAsync(channel));
             }
             catch (Exception e)
             {
@@ -100,9 +100,9 @@ namespace NetCore.Grpc.Client
 
         private static async Task SendMessageAsync(ChannelBase channel)
         {
+            var chatService = new ChatService.ChatServiceClient(channel);
             try
             {
-                var chatService = new ChatService.ChatServiceClient(channel);
                 var messageContent = string.Empty;
                 while (messageContent != "exit")
                 {
@@ -128,48 +128,64 @@ namespace NetCore.Grpc.Client
             CancellationTokenSource.Cancel();
         }
 
-        private static async Task SubscribeToNotificationsAsync(ChannelBase channel, CancellationToken stoppingToken)
+        private static async Task SubscribeToNotificationsAsync(CancellationToken stoppingToken)
         {   
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                var notificationClient = new NotificationService.NotificationServiceClient(channel);
-                using var call = notificationClient.Notify(new Empty());
-                    
-                try
-                {
-                    while (call?.ResponseStream != null && 
-                           await (call.ResponseStream.MoveNext(stoppingToken) ?? Task.FromResult(false)))
-                    {
-                        var eventMessage = call.ResponseStream.Current;
+            using var channel = CreateAuthenticatedChannel();
+            var notificationClient = new NotificationService.NotificationServiceClient(channel);
 
-                        switch (eventMessage.Type)
+            try
+            {
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    using var call = notificationClient.Notify(new Empty(), cancellationToken: stoppingToken);
+
+                    Console.WriteLine($"Is subscribed to notify");
+                    try
+                    {
+                        while (call?.ResponseStream != null &&
+                               await (call.ResponseStream.MoveNext(stoppingToken) ?? Task.FromResult(false)))
                         {
-                            case EventType.NewMessage:
-                                var message = Message.Parser.ParseFrom(eventMessage.Data);
-                                if (message.Login == _login)
-                                {
-                                    return;
-                                }
-                                
-                                var left = Console.CursorLeft;
-                                var top = Console.CursorTop;
-                                
-                                Console.MoveBufferArea(0, top-1, Math.Max(left, 14), 2, 0, top + 2);
-                                Console.SetCursorPosition(0, top-1);
-                                Console.WriteLine($"\r\n{message.Login}({message.Time.ToDateTime():g}): {message.Content}");
-                                Console.SetCursorPosition(left, top + 3);
-                                break;
-                            default:
-                                throw new ArgumentOutOfRangeException();
+                            var eventMessage = call.ResponseStream.Current;
+
+                            switch (eventMessage.Type)
+                            {
+                                case EventType.NewMessage:
+                                    var message = Message.Parser.ParseFrom(eventMessage.Data);
+                                    if (message.Login == _login)
+                                    {
+                                        continue;
+                                    }
+
+                                    var left = Console.CursorLeft;
+                                    var top = Console.CursorTop;
+
+                                    Console.MoveBufferArea(0, top - 1, Math.Max(left, 14), 2, 0, top + 1);
+                                    Console.SetCursorPosition(0, top - 1);
+                                    Console.WriteLine(
+                                        $"{message.Login}({message.Time.ToDateTime():g}): {message.Content}");
+                                    Console.SetCursorPosition(left, top + 2);
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException();
+                            }
                         }
                     }
-                }
-                catch (Exception e)
-                {
-                    Console.Error.Write(e.Message);
-                }
+                    catch (Exception e)
+                    {
+                        Console.Error.Write(e.Message);
+                    }
 
-                await Task.Delay(1000, stoppingToken);
+                    await Task.Delay(1000, stoppingToken);
+                    Console.WriteLine($"Is subscribed stopped");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.Error.Write(e.Message);
+            }
+            finally
+            {
+                await notificationClient.UnsubscribeAsync(new Empty());
             }
         }
     }
